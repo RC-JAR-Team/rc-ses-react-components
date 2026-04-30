@@ -4,6 +4,7 @@ import type { Meta, StoryFn } from '@storybook/react'
 
 import CaretLeftIcon from '@/assets/icons/CaretLeftIcon'
 import MagnifyingGlassIcon from '@/assets/icons/MagnifyingGlassIcon'
+import PencilSimpleLineIcon from '@/assets/icons/PencilSimpleLineIcon'
 import RcSesButton from '@/components/common/Button'
 import RcSesCard from '@/components/common/Card'
 import palette from '@/theme/palette'
@@ -49,6 +50,18 @@ Main.args = {
       </RcSesButton>
       <RcSesButton>Button</RcSesButton>
     </>
+  ),
+}
+
+export const WithHeaderAction = Template.bind({})
+WithHeaderAction.args = {
+  title: 'Juridinis asmuo',
+  description: 'UAB "Telia Lietuva", 121215434',
+  contentBackground: false,
+  headerAction: (
+    <RcSesButton startIcon={<PencilSimpleLineIcon />} variant='text' size='small'>
+      Redaguoti
+    </RcSesButton>
   ),
 }
 
