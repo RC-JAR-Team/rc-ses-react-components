@@ -1,11 +1,11 @@
 import { Box, Checkbox, TextField } from '@mui/material'
 import Autocomplete, { AutocompleteProps } from '@mui/material/Autocomplete'
-import { CheckIcon as Check } from '@phosphor-icons/react'
 import React, { useMemo } from 'react'
 import { UseControllerProps, useController } from 'react-hook-form'
 import { v4 as uuidv4 } from 'uuid'
 
 import CheckBoldIcon from '@/assets/icons/CheckBoldIcon'
+import CheckIcon from '@/assets/icons/CheckIcon'
 import CheckUncheckedBoldIcon from '@/assets/icons/CheckUncheckedBoldIcon'
 import MagnifyingGlassIcon from '@/assets/icons/MagnifyingGlassIcon'
 import palette from '@/theme/palette'
@@ -203,10 +203,7 @@ function RcSesSelect(props: Props) {
         inputValue={dropdownSearch ? undefined : inputValue}
         onChange={handleChange}
         onInputChange={(event, val, reason) => {
-          if (dropdownSearch) {
-            if (reason === 'input') return
-            return
-          }
+          if (dropdownSearch) return
 
           setInputValue(val ?? '')
           onInputChange?.(event, val, reason)
@@ -447,10 +444,9 @@ function RcSesSelect(props: Props) {
               </Box>
 
               {!multiple && selected && (
-                <Check
+                <CheckIcon
                   size={16}
-                  weight='bold'
-                  color={palette.primary.main}
+                  fillColor={palette.primary.main}
                   aria-hidden
                   style={{ flexShrink: 0, marginLeft: 'auto', alignSelf: 'center' }}
                 />
