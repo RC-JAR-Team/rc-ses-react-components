@@ -1,6 +1,5 @@
 import { ThemeProvider } from '@mui/material/styles'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { useForm } from 'react-hook-form'
 import { vi } from 'vitest'
 
@@ -83,18 +82,16 @@ describe('RcSesSearchInput', () => {
   })
 
   describe('handleSearchClick', () => {
-    test('calls onSearch with current value when button is clicked', async () => {
-      const user = userEvent.setup()
+    test('calls onSearch with current value when button is clicked', () => {
       const onSearch = vi.fn()
       render(<TestWrapper onSearch={onSearch} defaultValue='hello' />)
 
-      await user.click(screen.getByRole('button', { name: /search/i }))
+      fireEvent.click(screen.getByRole('button', { name: /search/i }))
 
       expect(onSearch).toHaveBeenCalledWith('hello')
     })
 
-    test('does not call onSearch when slotProps.searchButton.onClick calls preventDefault', async () => {
-      const user = userEvent.setup()
+    test('does not call onSearch when slotProps.searchButton.onClick calls preventDefault', () => {
       const onSearch = vi.fn()
 
       render(
@@ -109,47 +106,47 @@ describe('RcSesSearchInput', () => {
         />,
       )
 
-      await user.click(screen.getByRole('button', { name: /search/i }))
+      fireEvent.click(screen.getByRole('button', { name: /search/i }))
 
       expect(onSearch).not.toHaveBeenCalled()
     })
   })
 
   describe('handleFieldKeyDown', () => {
-    test('calls onSearch on Enter when search button is hidden', async () => {
-      const user = userEvent.setup()
+    test('calls onSearch on Enter when search button is hidden', () => {
       const onSearch = vi.fn()
       render(<TestWrapper onSearch={onSearch} showSearchButton={false} />)
 
-      await user.type(screen.getByRole('textbox'), 'query{Enter}')
+      const input = screen.getByRole('textbox')
+      fireEvent.change(input, { target: { value: 'query' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 })
 
       expect(onSearch).toHaveBeenCalledWith('query')
     })
 
-    test('does not call onSearch on Enter when value is empty', async () => {
-      const user = userEvent.setup()
+    test('does not call onSearch on Enter when value is empty', () => {
       const onSearch = vi.fn()
       render(<TestWrapper onSearch={onSearch} showSearchButton={false} />)
 
-      await user.click(screen.getByRole('textbox'))
-      await user.keyboard('{Enter}')
+      const input = screen.getByRole('textbox')
+      fireEvent.click(input)
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 })
 
       expect(onSearch).not.toHaveBeenCalled()
     })
 
-    test('does not call onSearch on Enter when search button is enabled (shouldSearchOnEnter=false)', async () => {
-      const user = userEvent.setup()
+    test('does not call onSearch on Enter when search button is enabled (shouldSearchOnEnter=false)', () => {
       const onSearch = vi.fn()
       render(<TestWrapper onSearch={onSearch} defaultValue='hello' />)
 
-      await user.click(screen.getByRole('textbox'))
-      await user.keyboard('{Enter}')
+      const input = screen.getByRole('textbox')
+      fireEvent.click(input)
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 })
 
       expect(onSearch).not.toHaveBeenCalled()
     })
 
-    test('does not call onSearch when slotProps.field.onKeyDown calls preventDefault', async () => {
-      const user = userEvent.setup()
+    test('does not call onSearch when slotProps.field.onKeyDown calls preventDefault', () => {
       const onSearch = vi.fn()
 
       render(
@@ -166,40 +163,39 @@ describe('RcSesSearchInput', () => {
         />,
       )
 
-      await user.type(screen.getByRole('textbox'), 'hi{Enter}')
+      const input = screen.getByRole('textbox')
+      fireEvent.change(input, { target: { value: 'hi' } })
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 })
 
       expect(onSearch).not.toHaveBeenCalled()
     })
   })
 
   describe('handleFieldChange', () => {
-    test('updates field value as user types', async () => {
-      const user = userEvent.setup()
+    test('updates field value as user types', () => {
       render(<TestWrapper />)
 
       const input = screen.getByRole('textbox')
-      await user.type(input, 'hello')
+      fireEvent.change(input, { target: { value: 'hello' } })
 
       expect(input).toHaveValue('hello')
     })
 
-    test('strips non-numeric characters when onlyNumbers=true', async () => {
-      const user = userEvent.setup()
+    test('strips non-numeric characters when onlyNumbers=true', () => {
       render(<TestWrapper onlyNumbers />)
 
       const input = screen.getByRole('textbox')
-      await user.type(input, 'ab12cd3')
+      fireEvent.change(input, { target: { value: 'ab12cd3' } })
 
       expect(input).toHaveValue('123')
     })
 
-    test('calls slotProps.field.onChange before updating value', async () => {
-      const user = userEvent.setup()
+    test('calls slotProps.field.onChange before updating value', () => {
       const fieldOnChange = vi.fn()
 
       render(<TestWrapper slotProps={{ field: { onChange: fieldOnChange } }} />)
 
-      await user.type(screen.getByRole('textbox'), 'x')
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'x' } })
 
       expect(fieldOnChange).toHaveBeenCalled()
     })

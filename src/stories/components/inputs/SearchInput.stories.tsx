@@ -63,7 +63,7 @@ const StoryTemplate = (args: React.ComponentProps<typeof RcSesSearchInput>) => {
     const newCount = searchCount + 1
     setLastSearchValue(value)
     setSearchCount(newCount)
-    onSearch?.(value)
+    onSearch(value)
   }
 
   return (

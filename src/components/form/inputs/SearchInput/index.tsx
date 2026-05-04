@@ -58,10 +58,7 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
     [ref],
   )
 
-  const { t } = useTranslation('input', { keyPrefix: 'components.RcSesSearchableField' })
-  const { t: tWrapper } = useTranslation('input', {
-    keyPrefix: 'components.RcSesFormControlWrapper',
-  })
+  const { t } = useTranslation('input', { keyPrefix: 'components.RcSesSearchInput' })
 
   const {
     control,
@@ -77,11 +74,16 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
     showSearchButton = true,
     searchButtonLabel,
     slotProps,
-    ...fieldProps
+    disabled,
+    name,
+    id: providedId,
   } = props
-  const { disabled, name } = fieldProps
-
-  const id = useMemo(() => fieldProps.id ?? uuidv4(), [fieldProps.id])
+  const {
+    InputProps: slotFieldInputProps,
+    inputProps: slotFieldNativeInputProps,
+    ...restFieldProps
+  } = slotProps?.field ?? {}
+  const id = useMemo(() => providedId ?? uuidv4(), [providedId])
 
   const hasRequiredRule = rules?.required !== undefined
   const isRequired = hasRequiredRule ? !!rules?.required : required === true
@@ -124,7 +126,7 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
     mergedSearchButtonProps.onClick?.(event)
 
     if (!event.defaultPrevented && hasSearchValue) {
-      onSearch?.(value ?? '')
+      onSearch(value ?? '')
     }
   }
 
@@ -136,7 +138,7 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
       event.preventDefault()
 
       if (hasSearchValue) {
-        onSearch?.(value ?? '')
+        onSearch(value ?? '')
       } else {
         onBlur()
       }
@@ -154,6 +156,52 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
     const parsedValue = onlyNumbers ? nextValue.replace(/\D+/g, '') : nextValue
 
     onChange(parsedValue)
+  }
+
+  const mergedNativeInputProps: NonNullable<
+    NonNullable<TFieldProps['InputProps']>['inputProps']
+  > = {
+    ...(slotFieldInputProps?.inputProps ?? {}),
+    ...(slotFieldNativeInputProps ?? {}),
+    ...(onlyNumbers
+      ? {
+          inputMode: 'numeric',
+          pattern: '[0-9]*',
+        }
+      : {}),
+  }
+
+  const mergedTextFieldInputProps: TFieldProps['InputProps'] = {
+    ...slotFieldInputProps,
+    inputProps: mergedNativeInputProps,
+    startAdornment: (
+      <InputAdornment position='start' onClick={() => internalInputRef.current?.focus()}>
+        <Box
+          sx={{
+            alignItems: 'center',
+            cursor: 'text',
+            display: 'flex',
+            height: '2.5rem',
+            justifyContent: 'center',
+            p: 1,
+            width: '2.5rem',
+          }}
+        >
+          <MagnifyingGlassIcon />
+        </Box>
+      </InputAdornment>
+    ),
+    endAdornment: !!value && (
+      <InputAdornment position='end'>
+        <IconButton
+          aria-label={t('clearValueAriaLabel')}
+          disabled={disabled}
+          onClick={() => onChange('')}
+        >
+          <XCircleFillIcon />
+        </IconButton>
+      </InputAdornment>
+    ),
   }
 
   return (
@@ -175,58 +223,17 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
         <TextField
           id={id}
           inputRef={setInputRef}
-          InputProps={{
-            inputProps: {
-              ...(slotProps?.field?.inputProps ?? {}),
-              ...(onlyNumbers
-                ? {
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*',
-                  }
-                : {}),
-            },
-            startAdornment: (
-              <InputAdornment
-                position='start'
-                onClick={() => internalInputRef.current?.focus()}
-              >
-                <Box
-                  sx={{
-                    alignItems: 'center',
-                    cursor: 'text',
-                    display: 'flex',
-                    height: '2.5rem',
-                    justifyContent: 'center',
-                    p: 1,
-                    width: '2.5rem',
-                  }}
-                >
-                  <MagnifyingGlassIcon />
-                </Box>
-              </InputAdornment>
-            ),
-            endAdornment: !!value && (
-              <InputAdornment position='end'>
-                <IconButton
-                  aria-label={t('clearValueAriaLabel')}
-                  disabled={disabled}
-                  onClick={() => onChange('')}
-                >
-                  <XCircleFillIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
+          InputProps={mergedTextFieldInputProps}
           error={!!visibleErrors}
           fullWidth
-          {...slotProps?.field}
+          {...restFieldProps}
           disabled={disabled}
           label={undefined}
           name={name}
           onBlur={onBlur}
           onChange={handleFieldChange}
           onKeyDown={handleFieldKeyDown}
-          placeholder={slotProps?.field?.placeholder ?? placeholder}
+          placeholder={restFieldProps.placeholder ?? placeholder}
           sx={[
             {
               flex: '1 1 auto',
@@ -238,16 +245,16 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
                 backgroundColor: currentTheme.palette.background.paper,
               },
             },
-            ...(Array.isArray(slotProps?.field?.sx)
-              ? slotProps.field.sx
-              : [slotProps?.field?.sx]),
+            ...(Array.isArray(restFieldProps.sx)
+              ? restFieldProps.sx
+              : [restFieldProps.sx]),
           ]}
           value={value ?? ''}
         />
 
         {shouldRenderSearchButton && (
           <RcSesButton
-            disabled={!!(disabled || mergedSearchButtonProps.disabled || !hasSearchValue)}
+            disabled={disabled || mergedSearchButtonProps.disabled || !hasSearchValue}
             onClick={handleSearchClick}
             sx={[
               {
@@ -262,7 +269,9 @@ const RcSesSearchInput = React.forwardRef<HTMLInputElement, Props>((props, ref) 
             ]}
             {...mergedSearchButtonProps}
           >
-            {searchButtonLabel ?? mergedSearchButtonProps.children ?? tWrapper('search')}
+            {searchButtonLabel ??
+              mergedSearchButtonProps.children ??
+              t('searchButtonLabel')}
           </RcSesButton>
         )}
       </Box>
